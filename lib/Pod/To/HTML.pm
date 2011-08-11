@@ -43,7 +43,7 @@ sub buildindexes {
         my $head = $p.value;
         if +@opened {
             while @opened[*-1] > $lvl {
-                $r   ~= "</ul>\n";
+                $r ~= "</ul>\n";
                 @opened.pop;
             }
         }
@@ -63,7 +63,7 @@ sub buildindexes {
 }
 
 sub heading2html($pod) {
-    my $lvl = $pod.level;
+    my $lvl = max($pod.level, 6);
     my $txt = escape($pod.content[0].content.Str, 'html');
     @indexes.push: Pair.new(key => $lvl, value => $txt);
     return "<h$lvl><a class='u' href='#___top' title='click to go to top of document' name='$txt'>{$txt}</a></h$lvl>\n";
