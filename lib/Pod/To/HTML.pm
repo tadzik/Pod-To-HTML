@@ -52,7 +52,7 @@ sub metadata {
 }
 
 sub buildindexes {
-    my $r = "<nav class='indexgroup'>\n";
+    my $r = qq[<nav class="indexgroup">\n];
 
     my $indent = q{ } x 2;
     my @opened;
@@ -69,11 +69,12 @@ sub buildindexes {
         my $last = @opened[*-1] // 0;
         if $last < $lvl {
             $r ~= $indent x $last
-                ~ "<ul class='indexList indexList$lvl'>\n";
+                ~ qq[<ul class="indexList indexList{$lvl}">\n];
             @opened.push($lvl);
         }
         $r ~= $indent x $lvl
-            ~ "<li class='indexItem indexItem$lvl'><a href='#{escape($head, 'uri')}'>{$head}</a>\n";
+            ~ qq[<li class="indexItem indexItem{$lvl}">]
+            ~ qq[<a href="#{escape($head, 'uri')}">{$head}</a>\n];
     }
     for ^@opened {
         $r ~= $indent x @opened - 1 - $^left
@@ -90,9 +91,7 @@ sub heading2html($pod) {
 
     return
         sprintf('<h%d id="%s">', $lvl, escape($pod.content[0].content, 'uri'))
-            ~ '<a class="u" href="#___top" title="click to go to top of document">'
-                ~ $txt
-            ~ '</a>'
+            ~ qq[<a class="u" href="#___top" title="go to top of document">{$txt}</a>]
         ~ "</h$lvl>\n";
 }
 
@@ -147,13 +146,11 @@ sub table2html($pod) {
 
     if $pod.headers {
         @r.push(
-            '<thead>',
-            '<tr>',
+            '<thead><tr>',
             $pod.headers.map(-> $cell {
                 "<th>{escape($cell, 'html')}</th>"
             }),
-            '</tr>',
-            '</thead>'
+            '</tr></thead>'
         );
     }
 
