@@ -1,7 +1,7 @@
 use v6;
 module Text::Escape;
 
-sub escape($str, $how) is export {
+sub escape($str as Str, Str $how) is export {
     given $how.lc {
         when 'none'         { $str }
         when 'html'         { escape_str($str, &escape_html_char) }
@@ -10,7 +10,7 @@ sub escape($str, $how) is export {
     }
 }
 
-sub escape_html_char($c) {
+sub escape_html_char(Str $c) returns Str {
     my %escapes = (
         q{<}    => '&lt;',
         q{>}    => '&gt;',
@@ -21,7 +21,7 @@ sub escape_html_char($c) {
     %escapes{$c} // $c;
 }
 
-sub escape_uri_char($c) {
+sub escape_uri_char(Str $c) returns Str {
     return q{+} if $c eq q{ };
 
     my $allowed = 'abcdefghijklmnopqrstuvwxyz'
@@ -35,7 +35,7 @@ sub escape_uri_char($c) {
     return q{%} ~ ord($c).fmt('%x');
 }
 
-sub escape_str($str, $callback) {
+sub escape_str(Str $str, Callable $callback) returns Str {
     my $result = '';
     for ^$str.chars -> $index {
         $result ~= $callback($str.substr: $index, 1)
