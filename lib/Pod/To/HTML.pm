@@ -95,24 +95,35 @@ sub item2html($pod) {
 }
 
 sub table2html($pod) {
-    my $r = "<table border='1'>\n";
+    my @r;
+
     if $pod.caption {
-        $r ~= "<tr>{escape($pod.caption, 'html')}</tr>\n";
+        @r.push("<caption>{escape($pod.caption, 'html')}</caption>");
     }
+
     if $pod.headers {
-        $r ~= "<tr>\n";
-        for $pod.headers {
-            $r ~= "<th>{escape($_, 'html')}</th>\n";
-        }
-        $r ~= "</tr>\n";
+        @r.push(
+            '<thead>',
+            '<tr>',
+            $pod.headers.map(-> $cell {
+                "<th>{escape($cell, 'html')}</th>"
+            }),
+            '</tr>',
+            '</thead>'
+        );
     }
-    for $pod.content -> $line {
-        $r ~= "<tr>\n";
-        for $line.list {
-            $r ~= "<td>{escape($_, 'html')}</td>\n";
-        }
-        $r ~= "</tr>\n";
-    }
-    $r ~= "</table>\n";
-    return $r;
+
+    @r.push(
+        '<tbody>',
+        $pod.content.map(-> $line {
+            '<tr>',
+            $line.list.map(-> $cell {
+                "<td>{escape($cell, 'html')}</td>"
+            }),
+            '</tr>'
+        }),
+        '</tbody>'
+    );
+
+    return "<table>\n{@r.join("\n")}\n</table>";
 }
