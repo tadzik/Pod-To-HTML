@@ -22,6 +22,8 @@ sub escape_html_char($c) {
 }
 
 sub escape_uri_char($c) {
+    return q{+} if $c eq q{ };
+
     my $allowed = 'abcdefghijklmnopqrstuvwxyz'
                 ~ 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
                 ~ '0123456789'
