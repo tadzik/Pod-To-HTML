@@ -1,13 +1,12 @@
 module Pod::To::HTML;
 use Text::Escape;
 
-my $prelude = q[
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-           "http://www.w3.org/TR/html4/loose.dtd"> 
-<html><head><title>Pod document</title> 
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" > 
-<link rel="stylesheet" type="text/css" title="pod_stylesheet"
-      href="http://perlcabal.org/syn/perl.css">
+my $prelude = q[<!doctype html>
+<html>
+<head>
+  <title>Pod document</title>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="http://perlcabal.org/syn/perl.css">
 </head>
 <body class="pod">
 <a name='___top' class='dummyTopAnchor' ></a>
