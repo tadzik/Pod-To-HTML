@@ -1,23 +1,33 @@
 module Pod::To::HTML;
 use Text::Escape;
 
-my $prelude = q[<!doctype html>
-<html>
-<head>
-  <title>Pod document</title>
-  <meta charset="UTF-8" />
-  <link rel="stylesheet" href="http://perlcabal.org/syn/perl.css">
-</head>
-<body class="pod" id="___top">
-];
-
+my $title;
+my @meta;
 my @indexes;
 my @body;
 
 sub pod2html($pod) is export {
-
     @body.push: whatever2html($pod);
-    return $prelude ~ buildindexes() ~ @body.join ~ "</body></html>";
+
+    my $title_html = $title // 'Pod document';
+
+    # TODO: make this look nice again when q:to"" gets implemented
+    my $prelude = qq[<!doctype html>
+<html>
+<head>
+  <title>{$title_html}</title>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="http://perlcabal.org/syn/perl.css">
+  {metadata()}
+</head>
+<body class="pod" id="___top">
+];
+
+    return $prelude
+        ~ ($title.defined ?? "<h1>{$title_html}</h1>" !! '')
+        ~ buildindexes()
+        ~ @body.join
+        ~ "</body>\n</html>";
 }
 
 sub whatever2html($node) {
@@ -33,6 +43,12 @@ sub whatever2html($node) {
         when Pod::Block::Comment { }
         default                { $node.Str                       }
     }
+}
+
+sub metadata {
+    @meta.map(-> $p {
+        qq[<meta name="{$p.key}" value="{$p.value}" />\n]
+    }).join;
 }
 
 sub buildindexes {
@@ -64,7 +80,7 @@ sub buildindexes {
 
 sub heading2html($pod) {
     my $lvl = min($pod.level, 6);
-    my $txt = escape($pod.content[0].content.Str, 'html');
+    my $txt = prose2html($pod.content[0]);
     @indexes.push: Pair.new(key => $lvl, value => $txt);
     return "<h$lvl><a class='u' href='#___top' title='click to go to top of document' name='$txt'>{$txt}</a></h$lvl>\n";
 }
@@ -77,16 +93,33 @@ sub named2html($pod) {
                     ~ whatever2html($pod.content[1..*-1]) }
         when 'config' { }
         when 'nested' { }
-        default     { $pod.name ~ "<br />\n" ~ whatever2html($pod.content) }
+        default     {
+            if $pod.name eq 'TITLE' {
+                $title = prose2html($pod.content[0]);
+            }
+            elsif $pod.name ~~ any(<VERSION DESCRIPTION AUTHOR COPYRIGHT SUMMARY>)
+              and $pod.content[0] ~~ Pod::Block::Para {
+                @meta.push: Pair.new(key => $pod.name.lc, value => prose2html($pod.content[0]));
+            }
+
+            '<section>'
+                ~ "<h1>{$pod.name}</h1>\n"
+                ~ whatever2html($pod.content)
+                ~ "</section>\n"
+        }
     }
 }
 
+sub prose2html($pod, $sep = '') {
+    escape($pod.content.join($sep), 'html');
+}
+
 sub para2html($pod) {
-    '<p>' ~ escape($pod.content.join("\n"), 'html') ~ "</p>\n"
+    '<p>' ~ prose2html($pod, "\n") ~ "</p>\n"
 }
 
 sub code2html($pod) {
-    '<pre>' ~ escape($pod.content, 'html') ~ "</pre>\n"
+    '<pre>' ~ prose2html($pod) ~ "</pre>\n"
 }
 
 sub item2html($pod) {
