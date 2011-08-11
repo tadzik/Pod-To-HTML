@@ -24,7 +24,7 @@ sub pod2html($pod) is export {
 ];
 
     return $prelude
-        ~ ($title.defined ?? "<h1>{$title_html}</h1>" !! '')
+        ~ ($title.defined ?? "<h1>{$title_html}</h1>\n" !! '')
         ~ buildindexes()
         ~ @body.join
         ~ "</body>\n</html>";
@@ -53,36 +53,47 @@ sub metadata {
 
 sub buildindexes {
     my $r = "<nav class='indexgroup'>\n";
+
+    my $indent = q{ } x 2;
     my @opened;
     for @indexes -> $p {
         my $lvl  = $p.key;
         my $head = $p.value;
         if +@opened {
             while @opened[*-1] > $lvl {
-                $r ~= "</ul>\n";
+                $r ~= $indent x @opened - 1
+                    ~ "</ul>\n";
                 @opened.pop;
             }
         }
         my $last = @opened[*-1] // 0;
         if $last < $lvl {
-            $r ~= "<ul class='indexList indexList$lvl'>\n";
+            $r ~= $indent x $last
+                ~ "<ul class='indexList indexList$lvl'>\n";
             @opened.push($lvl);
         }
-        $r ~= "<li class='indexItem indexItem$lvl'><a href='#$head'>{$head}</a>\n";
+        $r ~= $indent x $lvl
+            ~ "<li class='indexItem indexItem$lvl'><a href='#{escape($head, 'uri')}'>{$head}</a>\n";
     }
-    for @opened {
-        $r ~= "</ul>\n";
+    for ^@opened {
+        $r ~= $indent x @opened - 1 - $^left
+            ~ "</ul>\n";
     }
-    $r ~= "</nav>\n";
 
-    return $r;
+    return $r ~ "</nav>\n";
 }
 
 sub heading2html($pod) {
     my $lvl = min($pod.level, 6);
     my $txt = prose2html($pod.content[0]);
     @indexes.push: Pair.new(key => $lvl, value => $txt);
-    return "<h$lvl><a class='u' href='#___top' title='click to go to top of document' name='$txt'>{$txt}</a></h$lvl>\n";
+
+    return
+        sprintf('<h%d id="%s">', $lvl, escape($pod.content[0].content, 'uri'))
+            ~ '<a class="u" href="#___top" title="click to go to top of document">'
+                ~ $txt
+            ~ '</a>'
+        ~ "</h$lvl>\n";
 }
 
 sub named2html($pod) {
