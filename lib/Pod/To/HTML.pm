@@ -36,7 +36,7 @@ sub whatever2html($node) {
 }
 
 sub buildindexes {
-    my $r = "<div class='indexgroup'>\n";
+    my $r = "<nav class='indexgroup'>\n";
     my @opened;
     for @indexes -> $p {
         my $lvl  = $p.key;
@@ -57,7 +57,7 @@ sub buildindexes {
     for @opened {
         $r ~= "</ul>\n";
     }
-    $r ~= "</div>\n";
+    $r ~= "</nav>\n";
 
     return $r;
 }
