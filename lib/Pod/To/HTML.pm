@@ -8,8 +8,7 @@ my $prelude = q[<!doctype html>
   <meta charset="UTF-8" />
   <link rel="stylesheet" href="http://perlcabal.org/syn/perl.css">
 </head>
-<body class="pod">
-<a name='___top' class='dummyTopAnchor' ></a>
+<body class="pod" id="___top">
 ];
 
 my @indexes;
