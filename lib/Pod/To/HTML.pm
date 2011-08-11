@@ -58,7 +58,7 @@ sub buildindexes {
     my @opened;
     for @indexes -> $p {
         my $lvl  = $p.key;
-        my $head = $p.value;
+        my %head = $p.value;
         if +@opened {
             while @opened[*-1] > $lvl {
                 $r ~= $indent x @opened - 1
@@ -74,7 +74,7 @@ sub buildindexes {
         }
         $r ~= $indent x $lvl
             ~ qq[<li class="indexItem indexItem{$lvl}">]
-            ~ qq[<a href="#{escape($head, 'uri')}">{$head}</a>\n];
+            ~ qq[<a href="#{%head<uri>}">{%head<html>}</a>\n];
     }
     for ^@opened {
         $r ~= $indent x @opened - 1 - $^left
@@ -86,13 +86,15 @@ sub buildindexes {
 
 sub heading2html($pod) {
     my $lvl = min($pod.level, 6);
-    my $txt = prose2html($pod.content[0]);
-    @indexes.push: Pair.new(key => $lvl, value => $txt);
+    my %escaped = ($_ => escape($pod.content[0].content, $_) for <uri html>);
+    @indexes.push: Pair.new(key => $lvl, value => %escaped);
 
     return
-        sprintf('<h%d id="%s">', $lvl, escape($pod.content[0].content, 'uri'))
-            ~ qq[<a class="u" href="#___top" title="go to top of document">{$txt}</a>]
-        ~ "</h$lvl>\n";
+        sprintf('<h%d id="%s">', $lvl, %escaped<uri>)
+            ~ qq[<a class="u" href="#___top" title="go to top of document">]
+                ~ %escaped<html>
+            ~ qq[</a>]
+        ~ qq[</h{$lvl}>\n];
 }
 
 sub named2html($pod) {
