@@ -127,7 +127,7 @@ sub prose2html($pod, $sep = '') {
 }
 
 sub para2html($pod) {
-    '<p>' ~ prose2html($pod, "\n") ~ "</p>\n"
+    '<p>' ~ escape(twine2text($pod.content), 'html') ~ "</p>\n"
 }
 
 sub code2html($pod) {
@@ -137,6 +137,20 @@ sub code2html($pod) {
 sub item2html($pod) {
 #FIXME
     '<ul><li>' ~ whatever2html($pod.content) ~ "</li></ul>\n"
+}
+
+sub formatting2text($pod) {
+    twine2text($pod.content)
+}
+
+sub twine2text($twine) {
+    return '' unless $twine.elems;
+    my $r = $twine[0];
+    for $twine[1..*] -> $f, $s {
+        $r ~= twine2text($f.content);
+        $r ~= $s;
+    }
+    return $r;
 }
 
 sub table2html($pod) {
