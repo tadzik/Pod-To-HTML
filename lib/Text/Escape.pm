@@ -1,24 +1,19 @@
 use v6;
 module Text::Escape;
 
+sub escape_html($str as Str) {
+    $str.subst('&', '&amp;', :g).subst('<', '&lt;', :g
+         ).subst('>', '&gt;', :g).subst('"', '&quot;', :g
+         ).subst("'", '&#39;', :g);
+}
+
 sub escape($str as Str, Str $how) is export {
     given $how.lc {
         when 'none'         { $str }
-        when 'html'         { escape_str($str, &escape_html_char) }
+        when 'html'         { escape_html($str) }
         when 'uri' | 'url'  { escape_str($str, &escape_uri_char)  }
         default { fail "Don't know how to escape format $how yet" }
     }
-}
-
-sub escape_html_char(Str $c) returns Str {
-    my %escapes = (
-        q{<}    => '&lt;',
-        q{>}    => '&gt;',
-        q{&}    => '&amp;',
-        q{"}    => '&quot;',
-        q{'}    => '&#39;',
-    );
-    %escapes{$c} // $c;
 }
 
 sub escape_uri_char(Str $c) returns Str {
